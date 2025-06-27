@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jump 'n' Run Speedrun - Modern (iPad-kompatibel)</title>
+    <title>Jump 'n' Run Speedrun - Editor</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -17,57 +17,56 @@
             min-height: 100vh;
             margin: 0;
             overflow: hidden;
-            box-sizing: border-box; /* Stellt sicher, dass Padding und Border innerhalb der Breite bleiben */
+            box-sizing: border-box;
         }
         .game-container {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem; /* Größerer Abstand zwischen Elementen */
-            background-color: #ffffff; /* Weißer Container-Hintergrund */
-            padding: 2rem; /* Mehr Padding */
-            border-radius: 1.5rem; /* Stärker abgerundete Ecken */
+            gap: 1.5rem;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 1.5rem;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             max-width: 90vw;
             width: 800px;
             position: relative;
             z-index: 1;
-            border: none; /* Kein fester Rahmen */
+            border: none;
             box-sizing: border-box;
         }
         canvas {
-            background-color: #e2e8f0; /* Hellgrauer Canvas-Hintergrund */
-            border-radius: 1rem; /* Abgerundete Ecken für Canvas */
+            background-color: #e2e8f0;
+            border-radius: 1rem;
             border: none;
             display: block;
-            /* touch-action: none; prevents default browser touch gestures like scrolling/zooming */
             touch-action: none;
-            cursor: pointer; /* Zeigt, dass es interaktiv ist */
+            cursor: pointer;
         }
         .game-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1.125rem; /* Angemessene Schriftgröße */
+            font-size: 1.125rem;
             font-weight: bold;
-            color: #4a5568; /* Dunkelgraue Textfarbe */
+            color: #4a5568;
         }
         .timer, .level-display {
-            padding: 0.75rem 1.25rem; /* Mehr Padding */
-            background-color: #edf2f7; /* Noch hellerer Hintergrund */
-            border-radius: 0.75rem; /* Abgerundete Ecken */
+            padding: 0.75rem 1.25rem;
+            background-color: #edf2f7;
+            border-radius: 0.75rem;
             border: none;
         }
         .controls {
             display: flex;
             justify-content: center;
-            gap: 1.5rem; /* Größerer Abstand zwischen Buttons */
-            margin-top: 0.5rem; /* Etwas weniger Abstand nach oben */
+            gap: 1.5rem;
+            margin-top: 0.5rem;
         }
-        .control-button {
-            background-color: #4c51bf; /* Indigoblau */
+        .control-button, .editor-button {
+            background-color: #4c51bf;
             color: white;
-            padding: 0.8rem 2rem; /* Mehr Padding für größere Buttons */
-            border-radius: 0.75rem; /* Stärker abgerundete Ecken */
+            padding: 0.8rem 2rem;
+            border-radius: 0.75rem;
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
@@ -75,15 +74,16 @@
             border: none;
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
-            text-transform: uppercase; /* Großbuchstaben für die Beschriftung */
-            letter-spacing: 0.05em; /* Leichter Zeichenabstand */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex-shrink: 0; /* Prevent buttons from shrinking too much */
         }
-        .control-button:hover {
-            background-color: #434190; /* Dunkleres Indigoblau */
-            transform: translateY(-2px); /* Leichter Schwebe-Effekt */
-            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+        .control-button:hover, .editor-button:hover {
+            background-color: #434190;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.15), 0 4px sarcastic-6px -2px rgba(0, 0, 0, 0.08);
         }
-        .control-button:active {
+        .control-button:active, .editor-button:active {
             transform: translateY(0);
             box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
@@ -92,12 +92,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.7); /* Dunkle, leicht transparente Überlagerung */
+            background-color: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 2.5rem;
             border-radius: 1.5rem;
             text-align: center;
-            font-size: 1.6rem; /* Größere Schrift */
+            font-size: 1.6rem;
             font-weight: bold;
             z-index: 10;
             min-width: 350px;
@@ -128,10 +128,92 @@
             box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
         }
 
-        /* Mobile controls are removed as per mouse-only control request */
-        .mobile-controls {
-            display: none !important;
+        /* Menu Styles */
+        .main-menu, .play-submenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            z-index: 5;
+            border-radius: 1.5rem;
         }
+        .menu-title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #4c51bf;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .start-button, #editor-start-button {
+            background-color: #10b981;
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.1), 0 3px 6px -2px rgba(0, 0, 0, 0.05);
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .start-button:hover, #editor-start-button:hover {
+            background-color: #059669;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+        }
+        .start-button:active, #editor-start-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Editor Controls */
+        .editor-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background-color: #f8fafc; /* Light background for editor controls */
+            border: 1px solid #e2e8f0;
+        }
+        .editor-controls .element-palette,
+        .editor-controls .action-buttons {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .editor-button {
+            padding: 0.6rem 1.2rem; /* Slightly smaller buttons for editor palette */
+            font-size: 0.9rem;
+            min-width: 100px;
+        }
+        .editor-button.selected {
+            background-color: #6366f1; /* Highlight selected editor tool */
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translateY(0);
+        }
+        /* Specific colors for editor buttons */
+        #select-platform { background-color: #6b7280; } /* Grey */
+        #select-obstacle { background-color: #ef4444; } /* Red */
+        #select-player-start { background-color: #fcd34d; color: #2d3748; } /* Yellow */
+        #select-goal { background-color: #10b981; } /* Green */
+        #select-erase { background-color: #ef4444; } /* Red */
+        #test-level { background-color: #10b981; } /* Green */
+        #back-to-menu-from-editor { background-color: #a0aec0; } /* Grey */
+        #export-level, #import-level-button { background-color: #3b82f6; } /* Blue */
 
         @media (max-width: 767px) {
             .game-info {
@@ -147,12 +229,12 @@
                 padding: 1rem;
                 gap: 1rem;
             }
-            .controls {
+            .controls, .editor-controls .element-palette, .editor-controls .action-buttons {
                 flex-wrap: wrap;
                 justify-content: center;
                 gap: 0.75rem;
             }
-            .control-button {
+            .control-button, .editor-button {
                 flex: 1;
                 min-width: 140px;
                 padding: 0.7rem 1.5rem;
@@ -168,22 +250,69 @@
                 padding: 0.7rem 1.5rem;
                 font-size: 0.9rem;
             }
+            .menu-title {
+                font-size: 2rem;
+            }
+            .start-button, #editor-start-button {
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="game-info">
+        <!-- Main Menu -->
+        <div class="main-menu" id="main-menu">
+            <h1 class="menu-title">JUMP 'N' RUN</h1>
+            <button class="start-button" id="open-play-menu-button">SPIEL STARTEN</button>
+            <button class="start-button" id="editor-start-button">EDITOR STARTEN</button>
+        </div>
+
+        <!-- Play Submenu -->
+        <div class="play-submenu hidden" id="play-submenu">
+            <h1 class="menu-title">SPIELMODUS WÄHLEN</h1>
+            <button class="start-button" id="speedrun-button">SPEEDRUN (5 LEVEL)</button>
+            <input type="file" id="import-play-file-input" accept=".json" class="hidden">
+            <button class="start-button" id="import-play-level-button">LEVEL IMPORTIEREN & SPIELEN</button>
+            <button class="start-button bg-gray-500 hover:bg-gray-700" id="back-to-main-menu-from-play-submenu">ZURÜCK</button>
+        </div>
+
+        <!-- Game Info (hidden by default, shown when playing) -->
+        <div class="game-info hidden" id="game-info">
             <div class="level-display" id="level-display">LEVEL: 1</div>
             <div class="timer" id="timer">ZEIT: 00:00.000</div>
         </div>
-        <canvas id="gameCanvas"></canvas>
-        <div class="controls" id="desktop-controls">
+        
+        <!-- Canvas (hidden by default, shown when playing/editing) -->
+        <canvas id="gameCanvas" class="hidden"></canvas>
+        
+        <!-- Controls for Play Mode (hidden by default, shown when playing) -->
+        <div class="controls hidden" id="desktop-controls">
             <button class="control-button" id="restart-button">LEVEL NEUSTART</button>
             <button class="control-button" id="reset-game-button">SPIEL NEUSTART</button>
         </div>
+
+        <!-- Controls for Editor Mode (hidden by default, shown when editing) -->
+        <div class="editor-controls hidden" id="editor-controls">
+            <div class="element-palette">
+                <button class="editor-button" id="select-platform" data-type="platform">Plattform</button>
+                <button class="editor-button" id="select-obstacle" data-type="obstacle">Hindernis</button>
+                <button class="editor-button" id="select-player-start" data-type="playerStart">Spieler Start</button>
+                <button class="editor-button" id="select-goal" data-type="goal">Ziel</button>
+                <button class="editor-button bg-red-500 hover:bg-red-700" id="select-erase" data-type="erase">Löschen</button>
+            </div>
+            <div class="action-buttons">
+                <button class="editor-button bg-blue-500 hover:bg-blue-700" id="export-level">Level Exportieren</button>
+                <input type="file" id="import-file-input" accept=".json" class="hidden">
+                <button class="editor-button bg-blue-500 hover:bg-blue-700" id="import-level-button">Level Importieren</button>
+                <button class="editor-button bg-green-500 hover:bg-green-700" id="test-level">Level Testen</button>
+                <button class="editor-button bg-gray-500 hover:bg-gray-700" id="back-to-menu-from-editor">Zum Menü</button>
+            </div>
+        </div>
     </div>
 
+    <!-- Message Box (always on top) -->
     <div class="message-box" id="message-box">
         <div id="message-text"></div>
         <button id="message-button">OK</button>
@@ -195,13 +324,16 @@
         const CANVAS_HEIGHT = 400;
         const PLAYER_SIZE = 20;
         const PLAYER_SPEED = 3;
-        const JUMP_POWER = 7;
-        const GRAVITY = 0.2;
+        const JUMP_POWER = 5.5; // Angepasst für langsamere Sprungdauer
+        const GRAVITY = 0.12; // Angepasst für langsamere Sprungdauer
         const FRICTION = 0.8;
+        const GRID_CELL_SIZE = 20; // For editor mode
         const GROUND_COLOR = '#6b7280'; // Grauton
         const OBSTACLE_COLOR = '#ef4444'; // Rot
         const GOAL_COLOR = '#10b981'; // Grün
         const PLAYER_COLOR = '#fcd34d'; // Gelb
+        const GRID_COLOR = '#cbd5e0'; // Light grey for grid lines
+        const HOVER_HIGHLIGHT_COLOR = '#3b82f6'; // Blue for hover highlight
 
         // Game State Variables
         let canvas, ctx;
@@ -212,11 +344,22 @@
         let timerInterval;
         let animationFrameId;
 
+        // Game States
+        const GAME_STATE = {
+            MENU: 'MENU',
+            SUBMENU_PLAY: 'SUBMENU_PLAY', // New state for play options
+            PLAYING: 'PLAYING',
+            EDITOR: 'EDITOR',
+            GAME_OVER: 'GAME_OVER'
+        };
+        let gameState = GAME_STATE.MENU;
+
         // Mouse/Touch Input State
-        let isInputDown = false; // Unified state for mouse/touch down
-        let inputX = 0; // Unified X position for mouse/touch
-        let lastJumpTime = 0; // To prevent rapid jumps on input hold
-        const JUMP_COOLDOWN = 200; // Milliseconds between jumps
+        let isInputDown = false;
+        let inputX = 0; // X position for both play and editor modes
+        let inputY = 0; // Y position for editor mode
+        let lastJumpTime = 0;
+        const JUMP_COOLDOWN = 200;
 
         // Special Effects Variables
         let particles = [];
@@ -227,18 +370,43 @@
         let shakeOffsetX = 0;
         let shakeOffsetY = 0;
 
-        // Message Box Elements
-        const messageBox = document.getElementById('message-box');
-        const messageText = document.getElementById('message-text');
-        const messageButton = document.getElementById('message-button');
+        // Editor Mode Variables
+        let selectedElementType = 'platform'; // Default selected element
+        let editorLevelData = null; // Will store the level being edited
+        let isTestingEditorLevel = false; // Flag to know if currently playing a level from editor
+        let isPlayingImportedLevel = false; // Flag to know if playing a level imported via 'play' menu
 
-        // UI Elements
-        const levelDisplay = document.getElementById('level-display');
-        const timerDisplay = document.getElementById('timer');
-        const restartButton = document.getElementById('restart-button');
-        const resetGameButton = document.getElementById('reset-game-button');
+        // UI Elements (assigned in window.onload)
+        let mainMenu;
+        let openPlayMenuButton; // New button
+        let editorStartButton;
+        let playSubmenu; // New submenu div
+        let speedrunButton; // New button
+        let importPlayLevelButton; // New button
+        let importPlayFileInput; // New file input
+        let backToMainMenuFromPlaySubmenuButton; // New button
+        let gameInfo;
+        let gameCanvas;
+        let desktopControls;
+        let editorControls;
+        let messageBox;
+        let messageText;
+        let messageButton;
+        let levelDisplay;
+        let timerDisplay;
 
-        // Define Levels (platforms, obstacles, goal)
+        let selectPlatformButton;
+        let selectObstacleButton;
+        let selectPlayerStartButton;
+        let selectGoalButton;
+        let selectEraseButton;
+        let exportLevelButton;
+        let importLevelButton;
+        let importFileInput;
+        let testLevelButton;
+        let backToMenuFromEditorButton;
+
+        // Define Levels (platforms, obstacles, goal) - Pre-defined levels
         const levels = [
             // Level 1
             {
@@ -335,64 +503,172 @@
 
         // Initialize game elements when window loads
         window.onload = function() {
-            canvas = document.getElementById('gameCanvas');
+            // Assign UI elements here to ensure they are loaded
+            mainMenu = document.getElementById('main-menu');
+            openPlayMenuButton = document.getElementById('open-play-menu-button');
+            editorStartButton = document.getElementById('editor-start-button');
+            playSubmenu = document.getElementById('play-submenu');
+            speedrunButton = document.getElementById('speedrun-button');
+            importPlayLevelButton = document.getElementById('import-play-level-button');
+            importPlayFileInput = document.getElementById('import-play-file-input');
+            backToMainMenuFromPlaySubmenuButton = document.getElementById('back-to-main-menu-from-play-submenu');
+            gameInfo = document.getElementById('game-info');
+            gameCanvas = document.getElementById('gameCanvas');
+            desktopControls = document.getElementById('desktop-controls');
+            editorControls = document.getElementById('editor-controls');
+            messageBox = document.getElementById('message-box');
+            messageText = document.getElementById('message-text');
+            messageButton = document.getElementById('message-button');
+            levelDisplay = document.getElementById('level-display');
+            timerDisplay = document.getElementById('timer');
+
+            // Editor specific UI elements
+            selectPlatformButton = document.getElementById('select-platform');
+            selectObstacleButton = document.getElementById('select-obstacle');
+            selectPlayerStartButton = document.getElementById('select-player-start');
+            selectGoalButton = document.getElementById('select-goal');
+            selectEraseButton = document.getElementById('select-erase');
+            exportLevelButton = document.getElementById('export-level');
+            importLevelButton = document.getElementById('import-level-button');
+            importFileInput = document.getElementById('import-file-input');
+            testLevelButton = document.getElementById('test-level');
+            backToMenuFromEditorButton = document.getElementById('back-to-menu-from-editor');
+
+            canvas = gameCanvas;
             ctx = canvas.getContext('2d');
             canvas.width = CANVAS_WIDTH;
             canvas.height = CANVAS_HEIGHT;
 
-            // Event Listeners for Mouse
+            // Event Listeners for Mouse/Touch (on canvas)
             canvas.addEventListener('mousedown', handleInputDown);
             canvas.addEventListener('mouseup', handleInputUp);
             canvas.addEventListener('mousemove', handleInputMove);
-            // Prevent context menu on right click
-            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault()); // Prevent context menu on right click
 
-            // Event Listeners for Touch
             canvas.addEventListener('touchstart', handleInputDown, { passive: false });
             canvas.addEventListener('touchend', handleInputUp);
             canvas.addEventListener('touchmove', handleInputMove, { passive: false });
 
+            // Event Listeners for Main Menu Buttons
+            openPlayMenuButton.addEventListener('click', () => setUIState(GAME_STATE.SUBMENU_PLAY)); // Open play submenu
+            editorStartButton.addEventListener('click', startEditor);
 
-            // Event Listeners for Buttons
-            restartButton.addEventListener('click', restartLevel);
-            resetGameButton.addEventListener('click', resetGame);
+            // Event Listeners for Play Submenu Buttons
+            speedrunButton.addEventListener('click', startSpeedrun);
+            importPlayLevelButton.addEventListener('click', () => importPlayFileInput.click()); // Trigger hidden file input for play
+            importPlayFileInput.addEventListener('change', importLevelForPlay); // Handle file selection for play
+            backToMainMenuFromPlaySubmenuButton.addEventListener('click', () => setUIState(GAME_STATE.MENU));
+
+            // Event Listeners for Play Mode Buttons
+            document.getElementById('restart-button').addEventListener('click', restartLevel);
+            document.getElementById('reset-game-button').addEventListener('click', resetGame);
+            
+            // Event Listeners for Message Box Button
             messageButton.addEventListener('click', hideMessageBox);
 
-            startGame();
+            // Event Listeners for Editor Mode Buttons
+            selectPlatformButton.addEventListener('click', () => selectEditorElement('platform'));
+            selectObstacleButton.addEventListener('click', () => selectEditorElement('obstacle'));
+            selectPlayerStartButton.addEventListener('click', () => selectEditorElement('playerStart'));
+            selectGoalButton.addEventListener('click', () => selectEditorElement('goal'));
+            selectEraseButton.addEventListener('click', () => selectEditorElement('erase'));
+            exportLevelButton.addEventListener('click', exportLevel);
+            importLevelButton.addEventListener('click', () => importFileInput.click()); // Trigger hidden file input for editor
+            importFileInput.addEventListener('change', importLevelForEditor); // Handle file selection for editor
+            testLevelButton.addEventListener('click', () => startGame(true)); // Test editor level
+            backToMenuFromEditorButton.addEventListener('click', resetGame); // Go back to main menu from editor
+
+            // Set initial UI state
+            setUIState(GAME_STATE.MENU);
+            animate(); // Start the animation loop which will handle states
         };
 
         /**
+         * Sets the visibility of UI elements based on the current game state.
+         * @param {string} state - The desired game state.
+         */
+        function setUIState(state) {
+            gameState = state;
+
+            // Hide all major UI groups first
+            gameInfo.classList.add('hidden');
+            gameCanvas.classList.add('hidden');
+            desktopControls.classList.add('hidden');
+            editorControls.classList.add('hidden');
+            mainMenu.classList.add('hidden');
+            playSubmenu.classList.add('hidden'); // Hide the new submenu
+            // We explicitly hide message box when changing to MENU or PLAYING, not here globally.
+
+            switch (gameState) {
+                case GAME_STATE.MENU:
+                    mainMenu.classList.remove('hidden');
+                    hideMessageBox(); // Explicitly hide when going to menu
+                    break;
+                case GAME_STATE.SUBMENU_PLAY: // New state for play options
+                    playSubmenu.classList.remove('hidden');
+                    hideMessageBox(); // Explicitly hide when entering play submenu
+                    break;
+                case GAME_STATE.PLAYING:
+                    gameInfo.classList.remove('hidden');
+                    gameCanvas.classList.remove('hidden');
+                    desktopControls.classList.remove('hidden');
+                    hideMessageBox(); // Explicitly hide when starting game
+                    break;
+                case GAME_STATE.EDITOR:
+                    gameCanvas.classList.remove('hidden');
+                    editorControls.classList.remove('hidden');
+                    hideMessageBox(); // Explicitly hide when entering editor
+                    drawEditor(); // Redraw editor on entering
+                    break;
+                case GAME_STATE.GAME_OVER:
+                    // Message box is visible, other elements are hidden.
+                    // The showMessageBox function will handle its display.
+                    break;
+            }
+        }
+
+
+        /**
          * Handles mouse/touch down events.
-         * Sets input state and triggers jump if conditions met.
+         * Sets input state and triggers jump if conditions met (in PLAYING mode)
+         * or handles element placement (in EDITOR mode).
          * @param {MouseEvent|TouchEvent} e - The event.
          */
         function handleInputDown(e) {
-            e.preventDefault(); // Prevent default browser behavior (scrolling/zooming)
+            if (gameState !== GAME_STATE.PLAYING && gameState !== GAME_STATE.EDITOR) return;
+
+            e.preventDefault();
 
             const rect = canvas.getBoundingClientRect();
-            let clientX;
+            let clientX, clientY;
 
             if (e.touches && e.touches.length > 0) {
                 clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
             } else if (e.button === 0) { // Left mouse button
                 clientX = e.clientX;
+                clientY = e.clientY;
             } else {
-                return; // Ignore other mouse buttons
+                return;
             }
 
             inputX = clientX - rect.left;
+            inputY = clientY - rect.top; // Capture Y for editor mode
 
-            // Only jump if it's a new input (not already holding down) and on ground
-            if (!isInputDown) {
-                isInputDown = true;
-                const currentTime = Date.now();
-                if (player.onGround && (currentTime - lastJumpTime > JUMP_COOLDOWN)) {
-                    player.dy = -JUMP_POWER;
-                    player.onGround = false;
-                    lastJumpTime = currentTime; // Update last jump time
-                    // Add jump particles
-                    addParticles(player.x + player.width / 2, player.y + player.height, 5, PLAYER_COLOR, -0.5, 0.5, -2, -0.5, 0.05, 0.01);
+            if (gameState === GAME_STATE.PLAYING) {
+                // Only jump if it's a new input (not already holding down) and on ground
+                if (!isInputDown) {
+                    isInputDown = true;
+                    const currentTime = Date.now();
+                    if (player.onGround && (currentTime - lastJumpTime > JUMP_COOLDOWN)) {
+                        player.dy = -JUMP_POWER;
+                        player.onGround = false;
+                        lastJumpTime = currentTime;
+                        addParticles(player.x + player.width / 2, player.y + player.height, 5, PLAYER_COLOR, -0.5, 0.5, -2, -0.5, 0.05, 0.01);
+                    }
                 }
+            } else if (gameState === GAME_STATE.EDITOR) {
+                placeEditorElement(inputX, inputY);
             }
         }
 
@@ -402,103 +678,184 @@
          * @param {MouseEvent|TouchEvent} e - The event.
          */
         function handleInputUp(e) {
-            e.preventDefault(); // Prevent default browser behavior (scrolling/zooming)
+            if (gameState !== GAME_STATE.PLAYING && gameState !== GAME_STATE.EDITOR) return; // Still track in editor for hover
+            e.preventDefault();
             isInputDown = false;
         }
 
         /**
          * Handles mouse/touch move events.
-         * Updates inputX position.
+         * Updates inputX/Y position for player movement or editor hover.
          * @param {MouseEvent|TouchEvent} e - The event.
          */
         function handleInputMove(e) {
-            e.preventDefault(); // Prevent default browser behavior (scrolling/zooming)
+            if (gameState !== GAME_STATE.PLAYING && gameState !== GAME_STATE.EDITOR) return;
+
+            e.preventDefault();
 
             const rect = canvas.getBoundingClientRect();
-            let clientX;
+            let clientX, clientY;
 
             if (e.touches && e.touches.length > 0) {
                 clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
             } else {
                 clientX = e.clientX;
+                clientY = e.clientY;
             }
             inputX = clientX - rect.left;
+            inputY = clientY - rect.top; // Update Y for editor hover
         }
 
         /**
          * Initializes or restarts the game.
+         * @param {boolean} isEditorTestMode - True if starting a level from the editor's test button or imported play level.
          */
-        function startGame() {
-            currentLevel = 0;
-            // Only set startTime and start timer once at the very beginning of the game
-            startTime = Date.now();
-            startTimer();
-            loadLevel(); // Load the first level
+        function startGame(isEditorTestMode = false) {
+            isTestingEditorLevel = isEditorTestMode;
+            isPlayingImportedLevel = isEditorTestMode; // When testing editor level, it's also considered an imported level for play
+
+            currentLevel = 0; // Always start at level 0 for predefined levels
+
+            // The timer and active state will be reset only once at the beginning of a new game session
+            if (!gameActive || isEditorTestMode || gameState !== GAME_STATE.PLAYING) {
+                startTime = Date.now();
+                startTimer();
+            }
+            
+            loadLevel(); // Load the appropriate level (either 0 or editor data)
+            setUIState(GAME_STATE.PLAYING);
             gameActive = true;
             animate();
-            hideMessageBox();
         }
 
         /**
-         * Loads the current level's configuration.
+         * Starts the Speedrun game mode with pre-defined levels.
+         */
+        function startSpeedrun() {
+            isTestingEditorLevel = false;
+            isPlayingImportedLevel = false;
+            currentLevel = 0;
+            startGame(false);
+        }
+
+        /**
+         * Starts the editor mode.
+         */
+        function startEditor() {
+            setUIState(GAME_STATE.EDITOR);
+            gameActive = false; // Stop game logic when in editor
+            clearInterval(timerInterval); // Stop timer
+            resetShake();
+            // Load an empty editor level or a default one if none exists
+            if (!editorLevelData) {
+                editorLevelData = {
+                    platforms: [{ x: 0, y: CANVAS_HEIGHT - GRID_CELL_SIZE, width: CANVAS_WIDTH, height: GRID_CELL_SIZE }], // Default ground
+                    obstacles: [],
+                    playerStart: null, // No default player start
+                    goal: null // No default goal
+                };
+            }
+            selectEditorElement('platform'); // Default to platform tool
+            drawEditor(); // Initial draw of the editor
+        }
+
+        /**
+         * Loads the current level's configuration (either predefined or editor-built).
          */
         function loadLevel() {
-            if (currentLevel >= levels.length) {
-                // Game finished
-                gameActive = false;
-                clearInterval(timerInterval);
-                const finalTime = formatTime(Date.now() - startTime);
-                showMessageBox(`GLÜCKWUNSCH! DU HAST ALLE LEVEL IN ${finalTime} GESCHAFFT!`, true, resetGame);
-                return;
+            let levelToLoad;
+            if (isTestingEditorLevel || isPlayingImportedLevel) {
+                levelToLoad = editorLevelData;
+                levelDisplay.textContent = `LEVEL: CUSTOM`; // Indicate it's a custom/imported level
+            } else {
+                if (currentLevel >= levels.length) {
+                    // Game finished (all predefined levels completed)
+                    gameActive = false;
+                    clearInterval(timerInterval);
+                    const finalTime = formatTime(Date.now() - startTime);
+                    showMessageBox(`GLÜCKWUNSCH! DU HAST ALLE LEVEL IN ${finalTime} GESCHAFFT!`, true, resetGame);
+                    setUIState(GAME_STATE.GAME_OVER);
+                    return;
+                }
+                levelToLoad = levels[currentLevel];
+                levelDisplay.textContent = `LEVEL: ${currentLevel + 1}`;
             }
 
             // Reset player position for the new level
-            player.x = 50;
-            player.y = CANVAS_HEIGHT - PLAYER_SIZE - 20;
+            if (levelToLoad.playerStart) {
+                player.x = levelToLoad.playerStart.x;
+                player.y = levelToLoad.playerStart.y;
+            } else {
+                // Default player start if not defined (e.g., in editor mode without placing one yet)
+                player.x = 50;
+                player.y = CANVAS_HEIGHT - PLAYER_SIZE - GRID_CELL_SIZE;
+            }
             player.dx = 0;
             player.dy = 0;
             player.onGround = false;
             particles = []; // Clear particles on level load
-
-            levelDisplay.textContent = `LEVEL: ${currentLevel + 1}`;
-            // Timer continues from previous start if game is active, not resetting here.
         }
 
         /**
-         * Restarts the current level.
+         * Restarts the current level in play mode.
          */
         function restartLevel() {
-            loadLevel();
+            // This button is for normal game restart or, if an imported level, restart that specific one.
+            // It should NOT be used if it's an editor test being played.
+            if (isTestingEditorLevel) { // Should not happen if logic is correct, but as a safeguard
+                showMessageBox('Kann nicht neu starten, während Editor-Test läuft. Kehre zum Editor zurück.', false, () => setUIState(GAME_STATE.EDITOR));
+                return;
+            }
+            loadLevel(); // Reloads the current predefined level
             gameActive = true;
             hideMessageBox();
-            resetShake(); // Reset shake on restart
+            resetShake();
+            setUIState(GAME_STATE.PLAYING);
         }
 
         /**
-         * Resets the entire game to Level 1.
+         * Resets the entire game to Level 1 or returns to the main menu.
          */
         function resetGame() {
-            startGame();
-            hideMessageBox();
-            resetShake(); // Reset shake on full game reset
+            setUIState(GAME_STATE.MENU); // Go back to the main menu
+            gameActive = false;
+            clearInterval(timerInterval);
+            resetShake();
+            currentLevel = 0; // Ensure next game starts from level 1
+            isTestingEditorLevel = false;
+            isPlayingImportedLevel = false;
+            // editorLevelData is preserved for when entering editor mode again.
         }
 
         /**
          * Displays a message box.
          * @param {string} message - The message to display.
-         * @param {boolean} showResetButton - Whether to show the "Reset Game" button.
-         * @param {function} buttonCallback - Callback function for the button.
+         * @param {boolean} isGameOverScreen - True if this is a game over/win screen, meaning the game needs resetting.
+         * @param {function} customCallback - Optional: A custom function to run when the button is clicked.
          */
-        function showMessageBox(message, showResetButton = false, buttonCallback = null) {
+        function showMessageBox(message, isGameOverScreen = false, customCallback = null) {
             messageText.innerHTML = message;
-            messageButton.textContent = showResetButton ? 'SPIEL NEUSTARTEN' : 'OK';
             messageBox.style.display = 'block';
 
-            messageButton.onclick = null;
-            if (buttonCallback) {
-                messageButton.onclick = buttonCallback;
+            if (isGameOverScreen) {
+                // If it's an editor test or an imported level being played, button goes back to editor/play submenu
+                if (isTestingEditorLevel || isPlayingImportedLevel) {
+                    messageButton.textContent = 'ZURÜCK';
+                    messageButton.onclick = () => {
+                        hideMessageBox();
+                        // If it was an editor test, go back to editor. If just playing imported, go to play submenu.
+                        setUIState(isTestingEditorLevel ? GAME_STATE.EDITOR : GAME_STATE.SUBMENU_PLAY);
+                    };
+                } else {
+                    // For normal game over/win (pre-defined levels), button goes to main menu
+                    messageButton.textContent = 'SPIEL NEUSTARTEN';
+                    messageButton.onclick = resetGame;
+                }
             } else {
-                messageButton.onclick = hideMessageBox;
+                // For other messages (e.g., info messages, not game over)
+                messageButton.textContent = 'OK';
+                messageButton.onclick = customCallback || hideMessageBox;
             }
         }
 
@@ -521,7 +878,7 @@
          * Updates the timer display.
          */
         function updateTimer() {
-            if (gameActive) {
+            if (gameActive && gameState === GAME_STATE.PLAYING) {
                 const elapsedTime = Date.now() - startTime;
                 timerDisplay.textContent = `ZEIT: ${formatTime(elapsedTime)}`;
             }
@@ -577,21 +934,22 @@
          * The main game loop. Updates game state and redraws.
          */
         function animate() {
-            if (!gameActive) {
-                cancelAnimationFrame(animationFrameId);
-                return;
+            if (gameState === GAME_STATE.PLAYING) {
+                updateGame(); // Game specific update logic
+                updateShake(); // Camera shake
+                drawGame(); // Game specific draw logic
+            } else if (gameState === GAME_STATE.EDITOR) {
+                drawEditor(); // Only draw for editor
             }
+            // For MENU, SUBMENU_PLAY, and GAME_OVER, the UI is handled by HTML overlays, no continuous canvas drawing needed.
 
-            update();
-            updateShake(); // Update shake before drawing
-            draw();
             animationFrameId = requestAnimationFrame(animate);
         }
 
         /**
-         * Updates player position and handles collisions.
+         * Updates player position and handles collisions (Game Mode).
          */
-        function update() {
+        function updateGame() {
             // Apply horizontal movement based on input position
             if (isInputDown) {
                 if (inputX < player.x) {
@@ -599,19 +957,16 @@
                 } else if (inputX > player.x + player.width) {
                     player.dx = PLAYER_SPEED;
                 } else {
-                    // If input is over player, apply friction to stop
                     player.dx *= FRICTION;
                     if (Math.abs(player.dx) < 0.1) player.dx = 0;
                 }
             } else {
-                player.dx *= FRICTION; // Apply friction when input is not down
+                player.dx *= FRICTION;
                 if (Math.abs(player.dx) < 0.1) player.dx = 0;
             }
 
             // Apply gravity
             player.dy += GRAVITY;
-
-            // Update player position
             player.x += player.dx;
             player.y += player.dy;
 
@@ -625,9 +980,11 @@
                 player.dx = 0;
             }
 
-            // Collision detection with platforms
+            // Determine which level data to use
+            const currentLevelData = (isTestingEditorLevel || isPlayingImportedLevel) ? editorLevelData : levels[currentLevel];
+
             player.onGround = false;
-            const currentLevelData = levels[currentLevel];
+            // Collision detection with platforms
             for (const platform of currentLevelData.platforms) {
                 if (
                     player.x < platform.x + platform.width &&
@@ -637,20 +994,16 @@
                 ) {
                     // Collision detected
                     if (player.dy > 0 && player.y + player.height - player.dy <= platform.y) {
-                        // Falling onto a platform
                         player.y = platform.y - player.height;
                         player.dy = 0;
                         player.onGround = true;
                     } else if (player.dy < 0 && player.y - player.dy >= platform.y + platform.height) {
-                        // Hitting head on a platform
                         player.y = platform.y + platform.height;
                         player.dy = 0;
                     } else if (player.dx > 0 && player.x + player.width - player.dx <= platform.x) {
-                        // Colliding from left to right
                         player.x = platform.x - player.width;
                         player.dx = 0;
                     } else if (player.dx < 0 && player.x - player.dx >= platform.x + platform.width) {
-                        // Colliding from right to left
                         player.x = platform.x + platform.width;
                         player.dx = 0;
                     }
@@ -661,9 +1014,10 @@
             if (player.y + player.height > CANVAS_HEIGHT + 50) {
                 gameActive = false;
                 clearInterval(timerInterval);
-                addParticles(player.x + player.width / 2, player.y + player.height / 2, 20, OBSTACLE_COLOR, -3, 3, -5, 1, 0.1, 0.03); // Death particles
-                triggerShake(20, 5); // Trigger a strong shake on death
-                showMessageBox('DU BIST GEFALLEN! LEVEL NEU STARTEN?', false, restartLevel);
+                addParticles(player.x + player.width / 2, player.y + player.height / 2, 20, OBSTACLE_COLOR, -3, 3, -5, 1, 0.1, 0.03);
+                triggerShake(20, 5);
+                showMessageBox('GAME OVER! DU BIST GEFALLEN!', true); // isGameOverScreen = true
+                setUIState(GAME_STATE.GAME_OVER);
                 return;
             }
 
@@ -677,38 +1031,55 @@
                 ) {
                     gameActive = false;
                     clearInterval(timerInterval);
-                    addParticles(player.x + player.width / 2, player.y + player.height / 2, 20, OBSTACLE_COLOR, -3, 3, -5, 1, 0.1, 0.03); // Death particles
-                    triggerShake(20, 5); // Trigger a strong shake on death
-                    showMessageBox('DU HAST EIN HINDERNIS BERÜHRT! LEVEL NEU STARTEN?', false, restartLevel);
+                    addParticles(player.x + player.width / 2, player.y + player.height / 2, 20, OBSTACLE_COLOR, -3, 3, -5, 1, 0.1, 0.03);
+                    triggerShake(20, 5);
+                    showMessageBox('GAME OVER! DU HAST EIN HINDERNIS BERÜHRT!', true); // isGameOverScreen = true
+                    setUIState(GAME_STATE.GAME_OVER);
                     return;
                 }
             }
 
             // Check for collision with goal
-            const goal = currentLevelData.goal;
-            if (
-                player.x < goal.x + goal.width &&
-                player.x + player.width > goal.x &&
-                player.y < goal.y + goal.height &&
-                player.y + player.height > goal.y
-            ) {
-                addParticles(goal.x + goal.width / 2, goal.y + goal.height / 2, 30, GOAL_COLOR, -3, 3, -5, 0.5, 0.1, 0.02); // Goal particles
-                currentLevel++;
-                loadLevel();
+            if (currentLevelData.goal) { // Only check if a goal exists
+                const goal = currentLevelData.goal;
+                if (
+                    player.x < goal.x + goal.width &&
+                    player.x + player.width > goal.x &&
+                    player.y < goal.y + goal.height &&
+                    player.y + player.height > goal.y
+                ) {
+                    addParticles(goal.x + goal.width / 2, goal.y + goal.height / 2, 30, GOAL_COLOR, -3, 3, -5, 0.5, 0.1, 0.02);
+                    if (isTestingEditorLevel) {
+                        // Successfully completed editor test
+                        gameActive = false;
+                        clearInterval(timerInterval);
+                        showMessageBox('LEVEL ERFOLGREICH GETESTET!', true); // Go back to editor after test
+                        setUIState(GAME_STATE.GAME_OVER); // Transition to GAME_OVER state for message display
+                    } else if (isPlayingImportedLevel) {
+                        gameActive = false;
+                        clearInterval(timerInterval);
+                        showMessageBox('LEVEL ABGESCHLOSSEN!', true); // For imported levels, go back to play submenu
+                        setUIState(GAME_STATE.GAME_OVER); // Transition to GAME_OVER state for message display
+                    }
+                    else {
+                        // Normal game progression (speedrun)
+                        currentLevel++;
+                        loadLevel();
+                    }
+                }
             }
         }
 
         /**
-         * Draws all game elements on the canvas.
+         * Draws all game elements on the canvas (Game Mode).
          */
-        function draw() {
-            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Clear canvas
+        function drawGame() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-            // Apply camera shake translation
             ctx.save();
-            ctx.translate(shakeOffsetX, shakeOffsetY);
+            ctx.translate(shakeOffsetX, shakeOffsetY); // Apply camera shake
 
-            const currentLevelData = levels[currentLevel];
+            const currentLevelData = (isTestingEditorLevel || isPlayingImportedLevel) ? editorLevelData : levels[currentLevel];
 
             // Draw platforms
             ctx.fillStyle = GROUND_COLOR;
@@ -722,33 +1093,239 @@
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
             }
 
-            // Draw goal
-            ctx.fillStyle = GOAL_COLOR;
-            ctx.fillRect(currentLevelData.goal.x, currentLevelData.goal.y, currentLevelData.goal.width, currentLevelData.goal.height);
+            // Draw goal (if exists)
+            if (currentLevelData.goal) {
+                ctx.fillStyle = GOAL_COLOR;
+                ctx.fillRect(currentLevelData.goal.x, currentLevelData.goal.y, currentLevelData.goal.width, currentLevelData.goal.height);
+            }
 
             // Draw player
             ctx.fillStyle = PLAYER_COLOR;
             ctx.fillRect(player.x, player.y, player.width, player.height);
 
-            // Draw particles after game elements
-            drawParticles();
+            drawParticles(); // Draw particles
 
-            // Restore canvas transformation
-            ctx.restore();
+            ctx.restore(); // Restore canvas transformation
+        }
+
+        /**
+         * Draws the editor grid and current level elements (Editor Mode).
+         */
+        function drawEditor() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Draw grid
+            ctx.strokeStyle = GRID_COLOR;
+            ctx.lineWidth = 0.5;
+            for (let x = 0; x <= CANVAS_WIDTH; x += GRID_CELL_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, CANVAS_HEIGHT);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= CANVAS_HEIGHT; y += GRID_CELL_SIZE) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(CANVAS_WIDTH, y);
+                ctx.stroke();
+            }
+
+            // Draw editor level elements
+            if (editorLevelData) {
+                // Draw platforms
+                ctx.fillStyle = GROUND_COLOR;
+                for (const platform of editorLevelData.platforms) {
+                    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                }
+                // Draw obstacles
+                ctx.fillStyle = OBSTACLE_COLOR;
+                for (const obstacle of editorLevelData.obstacles) {
+                    ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                }
+                // Draw player start
+                if (editorLevelData.playerStart) {
+                    ctx.fillStyle = PLAYER_COLOR;
+                    ctx.fillRect(editorLevelData.playerStart.x, editorLevelData.playerStart.y, PLAYER_SIZE, PLAYER_SIZE);
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(editorLevelData.playerStart.x, editorLevelData.playerStart.y, PLAYER_SIZE, PLAYER_SIZE);
+                }
+                // Draw goal
+                if (editorLevelData.goal) {
+                    ctx.fillStyle = GOAL_COLOR;
+                    ctx.fillRect(editorLevelData.goal.x, editorLevelData.goal.y, editorLevelData.goal.width, editorLevelData.goal.height);
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(editorLevelData.goal.x, editorLevelData.goal.y, editorLevelData.goal.width, editorLevelData.goal.height);
+                }
+            }
+
+            // Draw hover highlight
+            // Check if inputX and inputY are within canvas bounds
+            if (inputX >= 0 && inputX < CANVAS_WIDTH && inputY >= 0 && inputY < CANVAS_HEIGHT) {
+                const hoverGridX = Math.floor(inputX / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+                const hoverGridY = Math.floor(inputY / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+                ctx.strokeStyle = HOVER_HIGHLIGHT_COLOR;
+                ctx.lineWidth = 3; // Thicker border for highlight
+                ctx.strokeRect(hoverGridX + 1, hoverGridY + 1, GRID_CELL_SIZE - 2, GRID_CELL_SIZE - 2); // Slightly inset
+            }
+        }
+
+        /**
+         * Selects an element type for placement in the editor.
+         * @param {string} type - The type of element to select.
+         */
+        function selectEditorElement(type) {
+            selectedElementType = type;
+            // Update button styling to show which is selected
+            const buttons = [selectPlatformButton, selectObstacleButton, selectPlayerStartButton, selectGoalButton, selectEraseButton];
+            buttons.forEach(button => {
+                if (button.dataset.type === type) {
+                    button.classList.add('selected');
+                } else {
+                    button.classList.remove('selected');
+                }
+            });
+        }
+
+        /**
+         * Places or removes an element in the editor based on selectedElementType.
+         * @param {number} clickX - X coordinate of the click.
+         * @param {number} clickY - Y coordinate of the click.
+         */
+        function placeEditorElement(clickX, clickY) {
+            const gridX = Math.floor(clickX / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+            const gridY = Math.floor(clickY / GRID_CELL_SIZE) * GRID_CELL_SIZE;
+
+            const elementRect = { x: gridX, y: gridY, width: GRID_CELL_SIZE, height: GRID_CELL_SIZE };
+
+            if (!editorLevelData) {
+                editorLevelData = { platforms: [], obstacles: [], playerStart: null, goal: null };
+            }
+
+            switch (selectedElementType) {
+                case 'platform':
+                    // Add platform, avoid duplicates at the same grid position
+                    if (!editorLevelData.platforms.some(p => p.x === gridX && p.y === gridY)) {
+                        editorLevelData.platforms.push(elementRect);
+                    }
+                    break;
+                case 'obstacle':
+                    if (!editorLevelData.obstacles.some(o => o.x === gridX && o.y === gridY)) {
+                        editorLevelData.obstacles.push(elementRect);
+                    }
+                    break;
+                case 'playerStart':
+                    editorLevelData.playerStart = { x: gridX, y: gridY, width: PLAYER_SIZE, height: PLAYER_SIZE };
+                    break;
+                case 'goal':
+                    editorLevelData.goal = { x: gridX, y: gridY, width: GRID_CELL_SIZE * 2, height: GRID_CELL_SIZE }; // Goal is wider
+                    break;
+                case 'erase':
+                    editorLevelData.platforms = editorLevelData.platforms.filter(p => !(p.x === gridX && p.y === gridY));
+                    editorLevelData.obstacles = editorLevelData.obstacles.filter(o => !(o.x === gridX && o.y === gridY));
+                    if (editorLevelData.playerStart && editorLevelData.playerStart.x === gridX && editorLevelData.playerStart.y === gridY) {
+                        editorLevelData.playerStart = null;
+                    }
+                    // Goal can be wider than one cell, check if any part of it is clicked
+                    if (editorLevelData.goal) {
+                        if (clickX >= editorLevelData.goal.x && clickX < editorLevelData.goal.x + editorLevelData.goal.width &&
+                            clickY >= editorLevelData.goal.y && clickY < editorLevelData.goal.y + editorLevelData.goal.height) {
+                            editorLevelData.goal = null;
+                        }
+                    }
+                    break;
+            }
+            drawEditor(); // Redraw immediately after placement/erasure
+        }
+
+        /**
+         * Exports the current editor level data as a JSON file.
+         */
+        function exportLevel() {
+            if (!editorLevelData) {
+                showMessageBox('Kein Level zum Exportieren vorhanden!', false);
+                return;
+            }
+            const dataStr = JSON.stringify(editorLevelData, null, 2); // Pretty print JSON
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'custom_level.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showMessageBox('Level erfolgreich exportiert!', false);
+        }
+
+        /**
+         * Imports a level from a JSON file selected by the user for editor.
+         * @param {Event} event - The change event from the file input.
+         */
+        function importLevelForEditor(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    // Basic validation
+                    if (importedData.platforms && Array.isArray(importedData.platforms) &&
+                        importedData.obstacles && Array.isArray(importedData.obstacles)) {
+                        editorLevelData = importedData;
+                        showMessageBox('Level erfolgreich importiert für Editor!', false);
+                        drawEditor(); // Redraw with imported level
+                    } else {
+                        showMessageBox('Ungültiges Levelformat. Bitte eine gültige JSON-Datei importieren.', false);
+                    }
+                } catch (error) {
+                    showMessageBox('Fehler beim Importieren des Levels: ' + error.message, false);
+                }
+                // Clear the file input value so the same file can be selected again if needed
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
+
+        /**
+         * Imports a level from a JSON file selected by the user and starts playing it immediately.
+         * @param {Event} event - The change event from the file input.
+         */
+        function importLevelForPlay(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.platforms && Array.isArray(importedData.platforms) &&
+                        importedData.obstacles && Array.isArray(importedData.obstacles)) {
+                        
+                        editorLevelData = importedData; // Use editorLevelData to hold the current custom level
+                        showMessageBox('Level erfolgreich importiert! Starte Spiel...', false, () => {
+                            startGame(true); // Start game with the imported level in "test mode"
+                        });
+                    } else {
+                        showMessageBox('Ungültiges Levelformat. Bitte eine gültige JSON-Datei importieren.', false);
+                    }
+                } catch (error) {
+                    showMessageBox('Fehler beim Importieren des Levels: ' + error.message, false);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         /**
          * Particle Class
-         * @param {number} x - initial x position
-         * @param {number} y - initial y position
-         * @param {number} size - initial size
-         * @param {string} color - color of the particle
-         * @param {number} minDx - min horizontal velocity
-         * @param {number} maxDx - max horizontal velocity
-         * @param {number} minDy - min vertical velocity
-         * @param {number} maxDy - max vertical velocity
-         * @param {number} fadeRate - how much alpha decreases per frame
-         * @param {number} shrinkRate - how much size decreases per frame
          */
         function Particle(x, y, size, color, minDx, maxDx, minDy, maxDy, fadeRate, shrinkRate) {
             this.x = x;
@@ -782,16 +1359,6 @@
 
         /**
          * Adds particles to the particles array.
-         * @param {number} x - X position to spawn particles.
-         * @param {number} y - Y position to spawn particles.
-         * @param {number} count - Number of particles to spawn.
-         * @param {string} color - Color of particles.
-         * @param {number} minDx - Min horizontal velocity for particles.
-         * @param {number} maxDx - Max horizontal velocity for particles.
-         * @param {number} minDy - Min vertical velocity for particles.
-         * @param {number} maxDy - Max vertical velocity for particles.
-         * @param {number} fadeRate - Fade rate for particles.
-         * @param {number} shrinkRate - Shrink rate for particles.
          */
         function addParticles(x, y, count, color, minDx, maxDx, minDy, maxDy, fadeRate, shrinkRate) {
             for (let i = 0; i < count; i++) {
