@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jump 'n' Run Speedrun - Modern (iPad-kompatibel)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Heller, moderner Hintergrund */
+            color: #2d3748; /* Dunkler Text für Kontrast */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            box-sizing: border-box; /* Stellt sicher, dass Padding und Border innerhalb der Breite bleiben */
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Größerer Abstand zwischen Elementen */
+            background-color: #ffffff; /* Weißer Container-Hintergrund */
+            padding: 2rem; /* Mehr Padding */
+            border-radius: 1.5rem; /* Stärker abgerundete Ecken */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 90vw;
+            width: 800px;
+            position: relative;
+            z-index: 1;
+            border: none; /* Kein fester Rahmen */
+            box-sizing: border-box;
+        }
+        canvas {
+            background-color: #e2e8f0; /* Hellgrauer Canvas-Hintergrund */
+            border-radius: 1rem; /* Abgerundete Ecken für Canvas */
+            border: none;
+            display: block;
+            /* touch-action: none; prevents default browser touch gestures like scrolling/zooming */
+            touch-action: none;
+            cursor: pointer; /* Zeigt, dass es interaktiv ist */
+        }
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.125rem; /* Angemessene Schriftgröße */
+            font-weight: bold;
+            color: #4a5568; /* Dunkelgraue Textfarbe */
+        }
+        .timer, .level-display {
+            padding: 0.75rem 1.25rem; /* Mehr Padding */
+            background-color: #edf2f7; /* Noch hellerer Hintergrund */
+            border-radius: 0.75rem; /* Abgerundete Ecken */
+            border: none;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem; /* Größerer Abstand zwischen Buttons */
+            margin-top: 0.5rem; /* Etwas weniger Abstand nach oben */
+        }
+        .control-button {
+            background-color: #4c51bf; /* Indigoblau */
+            color: white;
+            padding: 0.8rem 2rem; /* Mehr Padding für größere Buttons */
+            border-radius: 0.75rem; /* Stärker abgerundete Ecken */
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            text-transform: uppercase; /* Großbuchstaben für die Beschriftung */
+            letter-spacing: 0.05em; /* Leichter Zeichenabstand */
+        }
+        .control-button:hover {
+            background-color: #434190; /* Dunkleres Indigoblau */
+            transform: translateY(-2px); /* Leichter Schwebe-Effekt */
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+        }
+        .control-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7); /* Dunkle, leicht transparente Überlagerung */
+            color: white;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            text-align: center;
+            font-size: 1.6rem; /* Größere Schrift */
+            font-weight: bold;
+            z-index: 10;
+            min-width: 350px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
+            border: none;
+            display: none;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+        }
+        .message-box button {
+            margin-top: 2rem;
+            background-color: #4c51bf;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+        .message-box button:hover {
+            background-color: #434190;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Mobile controls are removed as per mouse-only control request */
+        .mobile-controls {
+            display: none !important;
+        }
+
+        @media (max-width: 767px) {
+            .game-info {
+                flex-direction: column;
+                gap: 0.75rem;
+                font-size: 1rem;
+            }
+            .timer, .level-display {
+                width: 100%;
+                text-align: center;
+            }
+            .game-container {
+                padding: 1rem;
+                gap: 1rem;
+            }
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.75rem;
+            }
+            .control-button {
+                flex: 1;
+                min-width: 140px;
+                padding: 0.7rem 1.5rem;
+                font-size: 0.9rem;
+            }
+            .message-box {
+                padding: 1.5rem;
+                font-size: 1.3rem;
+                min-width: 280px;
+            }
+            .message-box button {
+                margin-top: 1.5rem;
+                padding: 0.7rem 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-info">
+            <div class="level-display" id="level-display">LEVEL: 1</div>
+            <div class="timer" id="timer">ZEIT: 00:00.000</div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls" id="desktop-controls">
+            <button class="control-button" id="restart-button">LEVEL NEUSTART</button>
+            <button class="control-button" id="reset-game-button">SPIEL NEUSTART</button>
+        </div>
+    </div>
+
+    <div class="message-box" id="message-box">
+        <div id="message-text"></div>
+        <button id="message-button">OK</button>
+    </div>
+
+    <script>
+        // Game Constants (Modern Colors)
+        const CANVAS_WIDTH = 700;
+        const CANVAS_HEIGHT = 400;
+        const PLAYER_SIZE = 20;
+        const PLAYER_SPEED = 3;
+        const JUMP_POWER = 7;
+        const GRAVITY = 0.2;
+        const FRICTION = 0.8;
+        const GROUND_COLOR = '#6b7280'; // Grauton
+        const OBSTACLE_COLOR = '#ef4444'; // Rot
+        const GOAL_COLOR = '#10b981'; // Grün
+        const PLAYER_COLOR = '#fcd34d'; // Gelb
+
+        // Game State Variables
+        let canvas, ctx;
+        let player;
+        let currentLevel = 0; // 0-indexed for array
+        let gameActive = false;
+        let startTime;
+        let timerInterval;
+        let animationFrameId;
+
+        // Mouse/Touch Input State
+        let isInputDown = false; // Unified state for mouse/touch down
+        let inputX = 0; // Unified X position for mouse/touch
+        let lastJumpTime = 0; // To prevent rapid jumps on input hold
+        const JUMP_COOLDOWN = 200; // Milliseconds between jumps
+
+        // Special Effects Variables
+        let particles = [];
+
+        // Camera Shake Variables
+        let shakeDuration = 0;
+        let shakeIntensity = 0;
+        let shakeOffsetX = 0;
+        let shakeOffsetY = 0;
+
+        // Message Box Elements
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageButton = document.getElementById('message-button');
+
+        // UI Elements
+        const levelDisplay = document.getElementById('level-display');
+        const timerDisplay = document.getElementById('timer');
+        const restartButton = document.getElementById('restart-button');
+        const resetGameButton = document.getElementById('reset-game-button');
+
+        // Define Levels (platforms, obstacles, goal)
+        const levels = [
+            // Level 1
+            {
+                platforms: [
+                    { x: 0, y: CANVAS_HEIGHT - 20, width: CANVAS_WIDTH, height: 20 },
+                    { x: 100, y: CANVAS_HEIGHT - 80, width: 80, height: 20 },
+                    { x: 250, y: CANVAS_HEIGHT - 140, width: 100, height: 20 },
+                    { x: 450, y: CANVAS_HEIGHT - 100, width: 150, height: 20 }
+                ],
+                obstacles: [
+                    { x: 300, y: CANVAS_HEIGHT - 160, width: 20, height: 20 }
+                ],
+                goal: { x: CANVAS_WIDTH - 50, y: CANVAS_HEIGHT - 40, width: 30, height: 20 }
+            },
+            // Level 2
+            {
+                platforms: [
+                    { x: 0, y: CANVAS_HEIGHT - 20, width: CANVAS_WIDTH, height: 20 },
+                    { x: 80, y: CANVAS_HEIGHT - 100, width: 100, height: 20 },
+                    { x: 250, y: CANVAS_HEIGHT - 180, width: 120, height: 20 },
+                    { x: 450, y: CANVAS_HEIGHT - 250, width: 150, height: 20 },
+                    { x: 600, y: CANVAS_HEIGHT - 150, width: 80, height: 20 }
+                ],
+                obstacles: [
+                    { x: 150, y: CANVAS_HEIGHT - 20, width: 50, height: 20 },
+                    { x: 300, y: CANVAS_HEIGHT - 180, width: 20, height: 20 },
+                    { x: 500, y: CANVAS_HEIGHT - 250, width: 20, height: 20 }
+                ],
+                goal: { x: 650, y: CANVAS_HEIGHT - 170, width: 30, height: 20 }
+            },
+            // Level 3 (More jumping, smaller platforms)
+            {
+                platforms: [
+                    { x: 0, y: CANVAS_HEIGHT - 20, width: CANVAS_WIDTH, height: 20 },
+                    { x: 50, y: CANVAS_HEIGHT - 80, width: 50, height: 20 },
+                    { x: 180, y: CANVAS_HEIGHT - 140, width: 50, height: 20 },
+                    { x: 300, y: CANVAS_HEIGHT - 200, width: 50, height: 20 },
+                    { x: 450, y: CANVAS_HEIGHT - 150, width: 70, height: 20 },
+                    { x: 580, y: CANVAS_HEIGHT - 220, width: 70, height: 20 }
+                ],
+                obstacles: [
+                    { x: 100, y: CANVAS_HEIGHT - 20, width: 80, height: 20 },
+                    { x: 250, y: CANVAS_HEIGHT - 140, width: 20, height: 20 },
+                    { x: 400, y: CANVAS_HEIGHT - 20, width: 50, height: 20 }
+                ],
+                goal: { x: 650, y: CANVAS_HEIGHT - 240, width: 30, height: 20 }
+            },
+            // Level 4 (Further adjusted for easier play)
+            {
+                platforms: [
+                    { x: 0, y: CANVAS_HEIGHT - 20, width: CANVAS_WIDTH, height: 20 }, // Ground
+                    { x: 100, y: CANVAS_HEIGHT - 100, width: 150, height: 20 }, // Wider platform
+                    { x: 300, y: CANVAS_HEIGHT - 180, width: 150, height: 20 }, // Wider platform, moved
+                    { x: 500, y: CANVAS_HEIGHT - 100, width: 150, height: 20 }, // Wider platform, closer to goal
+                    { x: 600, y: CANVAS_HEIGHT - 250, width: 80, height: 20 } // Goal platform
+                ],
+                obstacles: [
+                    { x: 200, y: CANVAS_HEIGHT - 20, width: 50, height: 20 }, // Ground obstacle
+                    { x: 400, y: CANVAS_HEIGHT - 180, width: 20, height: 20 } // Single obstacle on platform
+                ],
+                goal: { x: 650, y: CANVAS_HEIGHT - 270, width: 30, height: 20 }
+            },
+            // Level 5 (Final Challenge)
+            {
+                platforms: [
+                    { x: 0, y: CANVAS_HEIGHT - 20, width: CANVAS_WIDTH, height: 20 }, // Ground
+                    { x: 50, y: CANVAS_HEIGHT - 100, width: 60, height: 20 },
+                    { x: 180, y: CANVAS_HEIGHT - 180, width: 70, height: 20 },
+                    { x: 300, y: CANVAS_HEIGHT - 100, width: 50, height: 20 },
+                    { x: 400, y: CANVAS_HEIGHT - 250, width: 80, height: 20 },
+                    { x: 550, y: CANVAS_HEIGHT - 150, width: 100, height: 20 }
+                ],
+                obstacles: [
+                    { x: 120, y: CANVAS_HEIGHT - 20, width: 80, height: 20 },
+                    { x: 220, y: CANVAS_HEIGHT - 180, width: 20, height: 20 },
+                    { x: 320, y: CANVAS_HEIGHT - 100, width: 20, height: 20 },
+                    { x: 450, y: CANVAS_HEIGHT - 250, width: 20, height: 20 },
+                    { x: 500, y: CANVAS_HEIGHT - 20, width: 50, height: 20 }
+                ],
+                goal: { x: CANVAS_WIDTH - 50, y: CANVAS_HEIGHT - 170, width: 30, height: 20 }
+            }
+        ];
+
+        // Player object
+        player = {
+            x: 50,
+            y: CANVAS_HEIGHT - PLAYER_SIZE - 20,
+            width: PLAYER_SIZE,
+            height: PLAYER_SIZE,
+            dx: 0,
+            dy: 0,
+            onGround: false
+        };
+
+        // Initialize game elements when window loads
+        window.onload = function() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+
+            // Event Listeners for Mouse
+            canvas.addEventListener('mousedown', handleInputDown);
+            canvas.addEventListener('mouseup', handleInputUp);
+            canvas.addEventListener('mousemove', handleInputMove);
+            // Prevent context menu on right click
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Event Listeners for Touch
+            canvas.addEventListener('touchstart', handleInputDown, { passive: false });
+            canvas.addEventListener('touchend', handleInputUp);
+            canvas.addEventListener('touchmove', handleInputMove, { passive: false });
+
+
+            // Event Listeners for Buttons
+            restartButton.addEventListener('click', restartLevel);
+            resetGameButton.addEventListener('click', resetGame);
+            messageButton.addEventListener('click', hideMessageBox);
+
+            startGame();
+        };
+
+        /**
+         * Handles mouse/touch down events.
+         * Sets input state and triggers jump if conditions met.
+         * @param {MouseEvent|TouchEvent} e - The event.
+         */
+        function handleInputDown(e) {
+            e.preventDefault(); // Prevent default browser behavior (scrolling/zooming)
+
+            const rect = canvas.getBoundingClientRect();
+            let clientX;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+            } else if (e.button === 0) { // Left mouse button
+                clientX = e.clientX;
+            } else {
+                return; // Ignore other mouse buttons
+            }
+
+            inputX = clientX - rect.left;
+
+            // Only jump if it's a new input (not already holding down) and on ground
+            if (!isInputDown) {
+                isInputDown = true;
+                const currentTime = Date.now();
+                if (player.onGround && (currentTime - lastJumpTime > JUMP_COOLDOWN)) {
+                    player.dy = -JUMP_POWER;
+                    player.onGround = false;
+                    lastJumpTime = currentTime; // Update last jump time
+                    // Add jump particles
+                    addParticles(player.x + player.width / 2, player.y + player.height, 5, PLAYER_COLOR, -0.5, 0.5, -2, -0.5, 0.05, 0.01);
+                }
+            }
+        }
+
+        /**
+         * Handles mouse/touch up events.
+         * Resets input state.
+         * @param {MouseEvent|TouchEvent} e - The event.
+         */
+        function handleInputUp(e) {
+            e.preventDefault(); // Prevent default browser behavior (scrolling/zooming)
+            isInputDown = false;
+        }
+
+        /**
+         * Handles mouse/touch move events.
+         * Updates inputX position.
+         * @param {MouseEvent|TouchEvent} e - The event.
+         */
+        function handleInputMove(e) {
+            e.preventDefault(); // Prevent default browser behavior (scrolling/zooming)
+
+            const rect = canvas.getBoundingClientRect();
+            let clientX;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+            } else {
+                clientX = e.clientX;
+            }
+            inputX = clientX - rect.left;
+        }
+
+        /**
+         * Initializes or restarts the game.
+         */
+        function startGame() {
+            currentLevel = 0;
+            // Only set startTime and start timer once at the very beginning of the game
+            startTime = Date.now();
+            startTimer();
+            loadLevel(); // Load the first level
+            gameActive = true;
+            animate();
+            hideMessageBox();
+        }
+
+        /**
+         * Loads the current level's configuration.
+         */
+        function loadLevel() {
+            if (currentLevel >= levels.length) {
+                // Game finished
+                gameActive = false;
+                clearInterval(timerInterval);
+                const finalTime = formatTime(Date.now() - startTime);
+                showMessageBox(`GLÜCKWUNSCH! DU HAST ALLE LEVEL IN ${finalTime} GESCHAFFT!`, true, resetGame);
+                return;
+            }
+
+            // Reset player position for the new level
+            player.x = 50;
+            player.y = CANVAS_HEIGHT - PLAYER_SIZE - 20;
+            player.dx = 0;
+            player.dy = 0;
+            player.onGround = false;
+            particles = []; // Clear particles on level load
+
+            levelDisplay.textContent = `LEVEL: ${currentLevel + 1}`;
+            // Timer continues from previous start if game is active, not resetting here.
+        }
+
+        /**
+         * Restarts the current level.
+         */
+        function restartLevel() {
+            loadLevel();
+            gameActive = true;
+            hideMessageBox();
+            resetShake(); // Reset shake on restart
+        }
+
+        /**
+         * Resets the entire game to Level 1.
+         */
+        function resetGame() {
+            startGame();
+            hideMessageBox();
+            resetShake(); // Reset shake on full game reset
+        }
+
+        /**
+         * Displays a message box.
+         * @param {string} message - The message to display.
+         * @param {boolean} showResetButton - Whether to show the "Reset Game" button.
+         * @param {function} buttonCallback - Callback function for the button.
+         */
+        function showMessageBox(message, showResetButton = false, buttonCallback = null) {
+            messageText.innerHTML = message;
+            messageButton.textContent = showResetButton ? 'SPIEL NEUSTARTEN' : 'OK';
+            messageBox.style.display = 'block';
+
+            messageButton.onclick = null;
+            if (buttonCallback) {
+                messageButton.onclick = buttonCallback;
+            } else {
+                messageButton.onclick = hideMessageBox;
+            }
+        }
+
+        /**
+         * Hides the message box.
+         */
+        function hideMessageBox() {
+            messageBox.style.display = 'none';
+        }
+
+        /**
+         * Starts the game timer.
+         */
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 10);
+        }
+
+        /**
+         * Updates the timer display.
+         */
+        function updateTimer() {
+            if (gameActive) {
+                const elapsedTime = Date.now() - startTime;
+                timerDisplay.textContent = `ZEIT: ${formatTime(elapsedTime)}`;
+            }
+        }
+
+        /**
+         * Formats milliseconds into MM:SS.mmm.
+         * @param {number} ms - Milliseconds.
+         * @returns {string} Formatted time string.
+         */
+        function formatTime(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const milliseconds = Math.floor((ms % 1000));
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}`;
+        }
+
+        /**
+         * Triggers a camera shake effect.
+         * @param {number} duration - Duration of the shake in frames.
+         * @param {number} intensity - Maximum pixel offset for the shake.
+         */
+        function triggerShake(duration, intensity) {
+            shakeDuration = duration;
+            shakeIntensity = intensity;
+        }
+
+        /**
+         * Updates camera shake offset.
+         */
+        function updateShake() {
+            if (shakeDuration > 0) {
+                shakeOffsetX = (Math.random() - 0.5) * 2 * shakeIntensity;
+                shakeOffsetY = (Math.random() - 0.5) * 2 * shakeIntensity;
+                shakeDuration--;
+            } else {
+                shakeOffsetX = 0;
+                shakeOffsetY = 0;
+            }
+        }
+
+        /**
+         * Resets camera shake to default.
+         */
+        function resetShake() {
+            shakeDuration = 0;
+            shakeIntensity = 0;
+            shakeOffsetX = 0;
+            shakeOffsetY = 0;
+        }
+
+        /**
+         * The main game loop. Updates game state and redraws.
+         */
+        function animate() {
+            if (!gameActive) {
+                cancelAnimationFrame(animationFrameId);
+                return;
+            }
+
+            update();
+            updateShake(); // Update shake before drawing
+            draw();
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        /**
+         * Updates player position and handles collisions.
+         */
+        function update() {
+            // Apply horizontal movement based on input position
+            if (isInputDown) {
+                if (inputX < player.x) {
+                    player.dx = -PLAYER_SPEED;
+                } else if (inputX > player.x + player.width) {
+                    player.dx = PLAYER_SPEED;
+                } else {
+                    // If input is over player, apply friction to stop
+                    player.dx *= FRICTION;
+                    if (Math.abs(player.dx) < 0.1) player.dx = 0;
+                }
+            } else {
+                player.dx *= FRICTION; // Apply friction when input is not down
+                if (Math.abs(player.dx) < 0.1) player.dx = 0;
+            }
+
+            // Apply gravity
+            player.dy += GRAVITY;
+
+            // Update player position
+            player.x += player.dx;
+            player.y += player.dy;
+
+            // Handle horizontal canvas boundaries
+            if (player.x < 0) {
+                player.x = 0;
+                player.dx = 0;
+            }
+            if (player.x + player.width > CANVAS_WIDTH) {
+                player.x = CANVAS_WIDTH - player.width;
+                player.dx = 0;
+            }
+
+            // Collision detection with platforms
+            player.onGround = false;
+            const currentLevelData = levels[currentLevel];
+            for (const platform of currentLevelData.platforms) {
+                if (
+                    player.x < platform.x + platform.width &&
+                    player.x + player.width > platform.x &&
+                    player.y < platform.y + platform.height &&
+                    player.y + player.height > platform.y
+                ) {
+                    // Collision detected
+                    if (player.dy > 0 && player.y + player.height - player.dy <= platform.y) {
+                        // Falling onto a platform
+                        player.y = platform.y - player.height;
+                        player.dy = 0;
+                        player.onGround = true;
+                    } else if (player.dy < 0 && player.y - player.dy >= platform.y + platform.height) {
+                        // Hitting head on a platform
+                        player.y = platform.y + platform.height;
+                        player.dy = 0;
+                    } else if (player.dx > 0 && player.x + player.width - player.dx <= platform.x) {
+                        // Colliding from left to right
+                        player.x = platform.x - player.width;
+                        player.dx = 0;
+                    } else if (player.dx < 0 && player.x - player.dx >= platform.x + platform.width) {
+                        // Colliding from right to left
+                        player.x = platform.x + platform.width;
+                        player.dx = 0;
+                    }
+                }
+            }
+
+            // Check for falling off the canvas (death condition)
+            if (player.y + player.height > CANVAS_HEIGHT + 50) {
+                gameActive = false;
+                clearInterval(timerInterval);
+                addParticles(player.x + player.width / 2, player.y + player.height / 2, 20, OBSTACLE_COLOR, -3, 3, -5, 1, 0.1, 0.03); // Death particles
+                triggerShake(20, 5); // Trigger a strong shake on death
+                showMessageBox('DU BIST GEFALLEN! LEVEL NEU STARTEN?', false, restartLevel);
+                return;
+            }
+
+            // Check for collision with obstacles
+            for (const obstacle of currentLevelData.obstacles) {
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y
+                ) {
+                    gameActive = false;
+                    clearInterval(timerInterval);
+                    addParticles(player.x + player.width / 2, player.y + player.height / 2, 20, OBSTACLE_COLOR, -3, 3, -5, 1, 0.1, 0.03); // Death particles
+                    triggerShake(20, 5); // Trigger a strong shake on death
+                    showMessageBox('DU HAST EIN HINDERNIS BERÜHRT! LEVEL NEU STARTEN?', false, restartLevel);
+                    return;
+                }
+            }
+
+            // Check for collision with goal
+            const goal = currentLevelData.goal;
+            if (
+                player.x < goal.x + goal.width &&
+                player.x + player.width > goal.x &&
+                player.y < goal.y + goal.height &&
+                player.y + player.height > goal.y
+            ) {
+                addParticles(goal.x + goal.width / 2, goal.y + goal.height / 2, 30, GOAL_COLOR, -3, 3, -5, 0.5, 0.1, 0.02); // Goal particles
+                currentLevel++;
+                loadLevel();
+            }
+        }
+
+        /**
+         * Draws all game elements on the canvas.
+         */
+        function draw() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Clear canvas
+
+            // Apply camera shake translation
+            ctx.save();
+            ctx.translate(shakeOffsetX, shakeOffsetY);
+
+            const currentLevelData = levels[currentLevel];
+
+            // Draw platforms
+            ctx.fillStyle = GROUND_COLOR;
+            for (const platform of currentLevelData.platforms) {
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            }
+
+            // Draw obstacles
+            ctx.fillStyle = OBSTACLE_COLOR;
+            for (const obstacle of currentLevelData.obstacles) {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            }
+
+            // Draw goal
+            ctx.fillStyle = GOAL_COLOR;
+            ctx.fillRect(currentLevelData.goal.x, currentLevelData.goal.y, currentLevelData.goal.width, currentLevelData.goal.height);
+
+            // Draw player
+            ctx.fillStyle = PLAYER_COLOR;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw particles after game elements
+            drawParticles();
+
+            // Restore canvas transformation
+            ctx.restore();
+        }
+
+        /**
+         * Particle Class
+         * @param {number} x - initial x position
+         * @param {number} y - initial y position
+         * @param {number} size - initial size
+         * @param {string} color - color of the particle
+         * @param {number} minDx - min horizontal velocity
+         * @param {number} maxDx - max horizontal velocity
+         * @param {number} minDy - min vertical velocity
+         * @param {number} maxDy - max vertical velocity
+         * @param {number} fadeRate - how much alpha decreases per frame
+         * @param {number} shrinkRate - how much size decreases per frame
+         */
+        function Particle(x, y, size, color, minDx, maxDx, minDy, maxDy, fadeRate, shrinkRate) {
+            this.x = x;
+            this.y = y;
+            this.size = size;
+            this.color = color;
+            this.dx = minDx + Math.random() * (maxDx - minDx);
+            this.dy = minDy + Math.random() * (maxDy - minDy);
+            this.alpha = 1;
+            this.fadeRate = fadeRate;
+            this.shrinkRate = shrinkRate;
+
+            this.update = function() {
+                this.x += this.dx;
+                this.y += this.dy;
+                this.dy += GRAVITY * 0.5; // Apply a smaller gravity to particles
+                this.alpha -= this.fadeRate;
+                this.size -= this.shrinkRate;
+            };
+
+            this.draw = function() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            };
+        }
+
+        /**
+         * Adds particles to the particles array.
+         * @param {number} x - X position to spawn particles.
+         * @param {number} y - Y position to spawn particles.
+         * @param {number} count - Number of particles to spawn.
+         * @param {string} color - Color of particles.
+         * @param {number} minDx - Min horizontal velocity for particles.
+         * @param {number} maxDx - Max horizontal velocity for particles.
+         * @param {number} minDy - Min vertical velocity for particles.
+         * @param {number} maxDy - Max vertical velocity for particles.
+         * @param {number} fadeRate - Fade rate for particles.
+         * @param {number} shrinkRate - Shrink rate for particles.
+         */
+        function addParticles(x, y, count, color, minDx, maxDx, minDy, maxDy, fadeRate, shrinkRate) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, 5 + Math.random() * 5, color, minDx, maxDx, minDy, maxDy, fadeRate, shrinkRate));
+            }
+        }
+
+        /**
+         * Updates and draws all active particles, removing faded ones.
+         */
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0 || particles[i].size <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
